@@ -4,14 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Device Motion (Gyroscope)</title>
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
   <style>
     body {
       font-family: sans-serif;
       text-align: center;
       margin-top: 40px;
-    }
-    h1 {
-      margin-bottom: 20px;
     }
     .axis {
       font-size: 1.5em;
@@ -39,8 +37,10 @@
     const gammaEl = document.getElementById("gamma");
     const startBtn = document.getElementById("startBtn");
 
+    // Connexion au serveur Socket.io
+    const socket = io("http://127.0.0.1:3000");
+
     async function startMotion() {
-      // iOS : demander la permission
       if (typeof DeviceMotionEvent !== "undefined" &&
           typeof DeviceMotionEvent.requestPermission === "function") {
         try {
@@ -55,16 +55,31 @@
         }
       }
 
-      // Écouter les événements de mouvement
+      // Écouter les événements d’orientation
       window.addEventListener("deviceorientation", (event) => {
         const { alpha, beta, gamma } = event;
-        alphaEl.textContent = "Alpha (Z): " + (alpha ? alpha.toFixed(2) : "0");
-        betaEl.textContent = "Beta (X): " + (beta ? beta.toFixed(2) : "0");
-        gammaEl.textContent = "Gamma (Y): " + (gamma ? gamma.toFixed(2) : "0");
+        const data = {
+          alpha: alpha || 0,
+          beta: beta || 0,
+          gamma: gamma || 0,
+        };
+
+        // Affiche sur ton écran
+        alphaEl.textContent = "Alpha (Z): " + data.alpha.toFixed(2);
+        betaEl.textContent = "Beta (X): " + data.beta.toFixed(2);
+        gammaEl.textContent = "Gamma (Y): " + data.gamma.toFixed(2);
+
+        // Envoie les données au serveur
+        socket.emit("gyroscopeData", data);
       });
     }
 
     startBtn.addEventListener("click", startMotion);
+
+    // Quand le serveur envoie des données d’un autre client
+    socket.on("updateGyroscope", (data) => {
+      console.log("📡 Données reçues d’un autre client :", data);
+    });
   </script>
 </body>
 </html>
