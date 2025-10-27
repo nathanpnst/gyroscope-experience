@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Device Motion (Gyroscope)</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      margin-top: 40px;
+    }
+    h1 {
+      margin-bottom: 20px;
+    }
+    .axis {
+      font-size: 1.5em;
+      margin: 10px 0;
+    }
+    #startBtn {
+      padding: 10px 20px;
+      font-size: 1em;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>Données du gyroscope (DeviceMotion)</h1>
+
+  <div class="axis" id="alpha">Alpha: </div>
+  <div class="axis" id="beta">Beta: </div>
+  <div class="axis" id="gamma">Gamma: </div>
+
+  <button id="startBtn">Démarrer le capteur</button>
+
+  <script>
+    const alphaEl = document.getElementById("alpha");
+    const betaEl = document.getElementById("beta");
+    const gammaEl = document.getElementById("gamma");
+    const startBtn = document.getElementById("startBtn");
+
+    async function startMotion() {
+      // iOS : demander la permission
+      if (typeof DeviceMotionEvent !== "undefined" &&
+          typeof DeviceMotionEvent.requestPermission === "function") {
+        try {
+          const response = await DeviceMotionEvent.requestPermission();
+          if (response !== "granted") {
+            alert("Permission refusée pour accéder aux capteurs de mouvement.");
+            return;
+          }
+        } catch (e) {
+          alert("Erreur lors de la demande de permission : " + e);
+          return;
+        }
+      }
+
+      // Écouter les événements de mouvement
+      window.addEventListener("deviceorientation", (event) => {
+        const { alpha, beta, gamma } = event;
+        alphaEl.textContent = "Alpha (Z): " + (alpha ? alpha.toFixed(2) : "0");
+        betaEl.textContent = "Beta (X): " + (beta ? beta.toFixed(2) : "0");
+        gammaEl.textContent = "Gamma (Y): " + (gamma ? gamma.toFixed(2) : "0");
+      });
+    }
+
+    startBtn.addEventListener("click", startMotion);
+  </script>
+</body>
+</html>
